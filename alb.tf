@@ -1,5 +1,5 @@
 resource "aws_lb" "app_lb" {
-  name               = "devsecops-alb"
+  name               = var.alb_name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
