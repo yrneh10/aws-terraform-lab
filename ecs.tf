@@ -1,5 +1,5 @@
 resource "aws_ecs_cluster" "main" {
-  name = "devsecops-cluster"
+  name = var.ecs_cluster_name
 }
 
 resource "aws_ecs_task_definition" "app" {
@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name      = "nginx"
-      image     = "<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/devsecops-app:latest"
+      image     = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.ecr_repo_name}:latest"
       essential = true
       portMappings = [
         {
