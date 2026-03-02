@@ -1,3 +1,3 @@
 resource "aws_ecr_repository" "app_repo" {
-  name = "devsecops-app"
+  name = var.ecr_repo_name
 }
