@@ -9,3 +9,4 @@ ecr_repo_name       = "devsecops-app"
 ecs_task_cpu        = 256
 ecs_task_memory     = 512
 ecs_desired_count   = 1
+bucket_name         = "yrneh10-terraform-lab-bucket"
