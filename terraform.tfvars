@@ -6,3 +6,6 @@ public_subnet2_cidr  = "10.0.2.0/24"
 alb_name             = "devsecops-alb"
 ecs_cluster_name     = "devsecops-cluster"
 ecr_repo_name        = "devsecops-app"
+ecs_task_cpu         = "256"
+ecs_task_memory      = "512"
+ecs_desired_count    = 1
