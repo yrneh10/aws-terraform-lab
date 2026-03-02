@@ -3,11 +3,11 @@ resource "aws_ecs_cluster" "main" {
 }
 
 resource "aws_ecs_task_definition" "app" {
-  family                   = "devsecops-app"
+  family                   = var.ecr_repo_name
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = var.ecs_task_cpu
+  memory                   = var.ecs_task_memory
   execution_role_arn       = aws_iam_role.ecs_task_execution.arn
 
   container_definitions = jsonencode([
@@ -26,10 +26,10 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 resource "aws_ecs_service" "app" {
-  name            = "devsecops-app-service"
+  name            = var.ecr_repo_name
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 1
+  desired_count   = var.ecs_desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
