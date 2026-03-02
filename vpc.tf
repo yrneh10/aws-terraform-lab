@@ -3,32 +3,28 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = {
-    Name = "devsecops-vpc"
-  }
+  tags = { Name = "devsecops-vpc" }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name = "devsecops-igw"
-  }
+  tags = { Name = "devsecops-igw" }
 }
 
 resource "aws_subnet" "public1" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.public_subnet1_cidr
-  availability_zone = "us-east-1a"
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet1_cidr
+  availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
   tags = { Name = "public-subnet-1" }
 }
 
 resource "aws_subnet" "public2" {
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.public_subnet2_cidr
-  availability_zone = "us-east-1b"
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet2_cidr
+  availability_zone       = "us-east-1b"
   map_public_ip_on_launch = true
 
   tags = { Name = "public-subnet-2" }
