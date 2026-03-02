@@ -1,11 +1,10 @@
-# ALB security group
+# ALB SG
 resource "aws_security_group" "alb_sg" {
   name        = "alb-sg"
-  description = "Allow HTTP"
+  description = "Allow HTTP from anywhere"
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "HTTP from anywhere"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -20,7 +19,7 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-# ECS tasks security group
+# ECS SG
 resource "aws_security_group" "ecs_sg" {
   name        = "ecs-sg"
   description = "Allow traffic from ALB"
