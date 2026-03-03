@@ -40,5 +40,11 @@ resource "aws_ecs_service" "app" {
     assign_public_ip = true
   }
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app_tg.arn
+    container_name   = "nginx"
+    container_port   = 80
+  }
+
   depends_on = [aws_lb_listener.http_listener]
 }
