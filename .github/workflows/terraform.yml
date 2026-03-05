@@ -1,62 +1,90 @@
-name: Terraform ECS Deploy
+name: Terraform ECS CI/CD Deploy
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       ECR_REPO_NAME: ${{ secrets.ECR_REPO_NAME }}
+      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.6
 
-      - name: Configure AWS CLI
-        run: aws configure set region $AWS_REGION
-
-      - name: Login to Amazon ECR
-        run: |
-          aws ecr get-login-password --region $AWS_REGION \
-          | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-      - name: Build Docker image
-        run: docker build -t devsecops-app .
-
-      - name: Tag Docker image
-        run: docker tag devsecops-app:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:latest
-
-      - name: Push Docker image
-        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:latest
-
       - name: Terraform Init
         run: terraform init -reconfigure -input=false
-
-      - name: Terraform Format Check
-        run: terraform fmt -check
 
       - name: Terraform Validate
         run: terraform validate
 
       - name: Terraform Plan
-        id: plan
         run: terraform plan -out=tfplan -input=false
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve tfplan
+
+      # ---------------------------
+      # Login to Amazon ECR
+      # ---------------------------
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login \
+          --username AWS \
+          --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      # ---------------------------
+      # Build Docker Image
+      # ---------------------------
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPO_NAME:latest .
+
+      # ---------------------------
+      # Tag Docker Image
+      # ---------------------------
+
+      - name: Tag Docker image
+        run: |
+          docker tag $ECR_REPO_NAME:latest \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:latest
+
+      # ---------------------------
+      # Push Image to ECR
+      # ---------------------------
+
+      - name: Push Docker image
+        run: |
+          docker push \
+          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:latest
+
+      # ---------------------------
+      # Deploy to ECS
+      # ---------------------------
+
+      - name: Force ECS Deployment
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment \
+            --region $AWS_REGION
